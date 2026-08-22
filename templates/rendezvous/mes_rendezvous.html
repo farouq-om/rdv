@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mes rendez-vous</h2>
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">{{ message }}</div>
+{% endfor %}
+{% if rendezvous_list %}
+<table class="table">
+  <thead>
+    <tr><th>Prestataire</th><th>Date</th><th>Horaire</th><th>Service</th><th>Statut</th><th>Paiement</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for rdv in rendezvous_list %}
+    <tr>
+      <td>{{ rdv.disponibilite.prestataire }}</td>
+      <td>{{ rdv.disponibilite.date }}</td>
+      <td>{{ rdv.disponibilite.heure_debut|time:"H:i" }} - {{ rdv.disponibilite.heure_fin|time:"H:i" }}</td>
+      <td>{{ rdv.service|default:"—" }}</td>
+      <td><span class="badge bg-secondary">{{ rdv.get_statut_display }}</span></td>
+      <td>
+        {% if rdv.paiement.statut == "paye" %}
+          <span class="badge bg-success">Payé ({{ rdv.paiement.montant }} MAD)</span>
+        {% elif rdv.paiement.statut == "en_attente" %}
+          <span class="badge bg-warning text-dark">En attente</span>
+        {% else %}
+          <span class="badge bg-light text-dark">—</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if rdv.statut == "en_attente" %}
+        <a href="{% url 'page_paiement' rdv.id %}" class="btn btn-sm btn-primary">Payer</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Tu n'as pas encore de rendez-vous.</p>
+{% endif %}
+{% endblock %}

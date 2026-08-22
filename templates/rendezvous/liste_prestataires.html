@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Trouver un prestataire</h2>
+{% if prestataires %}
+<div class="row row-cols-1 row-cols-md-2 g-3 mt-2">
+  {% for p in prestataires %}
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ p.user.get_full_name|default:p.user.username }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{ p.metier }}{% if p.ville %} — {{ p.ville }}{% endif %}</h6>
+        <p class="card-text">{{ p.description|default:"" }}</p>
+        <a href="{% url 'detail_prestataire' p.id %}" class="btn btn-outline-primary btn-sm">Voir les disponibilités</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>Aucun prestataire disponible pour le moment.</p>
+{% endif %}
+{% endblock %}
