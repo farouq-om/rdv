@@ -1,22 +1,41 @@
 {% extends "base.html" %}
+{% block title %}Trouver un prestataire{% endblock %}
 {% block content %}
-<h2>Trouver un prestataire</h2>
+<div class="mb-4">
+  <h2 class="fw-bold mb-1">Trouver un prestataire</h2>
+  <p class="text-muted">Parcourez les professionnels disponibles et réservez en quelques clics.</p>
+</div>
+
 {% if prestataires %}
-<div class="row row-cols-1 row-cols-md-2 g-3 mt-2">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
   {% for p in prestataires %}
   <div class="col">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="card-title">{{ p.user.get_full_name|default:p.user.username }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{ p.metier }}{% if p.ville %} — {{ p.ville }}{% endif %}</h6>
-        <p class="card-text">{{ p.description|default:"" }}</p>
-        <a href="{% url 'detail_prestataire' p.id %}" class="btn btn-outline-primary btn-sm">Voir les disponibilités</a>
+    <a href="{% url 'detail_prestataire' p.id %}" class="text-decoration-none text-reset">
+      <div class="card card-hover h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width:52px;height:52px;font-size:1.1rem;">
+              {{ p.user.username|slice:":2"|upper }}
+            </div>
+            <div>
+              <h5 class="card-title mb-0">{{ p.user.get_full_name|default:p.user.username }}</h5>
+              <span class="text-muted small">{{ p.metier }}{% if p.ville %} · {{ p.ville }}{% endif %}</span>
+            </div>
+          </div>
+          <p class="card-text text-muted small mb-3" style="min-height:2.5em;">
+            {{ p.description|default:"Aucune description renseignée."|truncatewords:18 }}
+          </p>
+          <span class="btn btn-outline-primary btn-sm w-100">Voir les disponibilités</span>
+        </div>
       </div>
-    </div>
+    </a>
   </div>
   {% endfor %}
 </div>
 {% else %}
-<p>Aucun prestataire disponible pour le moment.</p>
+<div class="card text-center p-5">
+  <h5>Aucun prestataire disponible pour le moment</h5>
+  <p class="text-muted mb-0">Reviens un peu plus tard, de nouveaux prestataires rejoignent la plateforme régulièrement.</p>
+</div>
 {% endif %}
 {% endblock %}

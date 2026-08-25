@@ -2,9 +2,15 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class ProfilPrestataire(models.Model):
+    class StatutValidation(models.TextChoices):
+        EN_ATTENTE = "en_attente", "En attente"
+        VALIDE = "valide", "Validé"
+        REJETE = "rejete", "Rejeté"
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -13,11 +19,22 @@ class ProfilPrestataire(models.Model):
     metier = models.CharField(max_length=100, help_text="Ex : Coiffeur, Consultant, Kinésithérapeute")
     description = models.TextField(blank=True)
     ville = models.CharField(max_length=100, blank=True)
-    valide = models.BooleanField(default=False, help_text="Coché par un administrateur après vérification")
+    document_justificatif = models.FileField(upload_to="documents_prestataires/", blank=True, null=True)
+    statut_validation = models.CharField(
+        max_length=20, choices=StatutValidation.choices, default=StatutValidation.EN_ATTENTE
+    )
+    motif_rejet = models.TextField(blank=True, default="")
+    date_soumission = models.DateTimeField(default=timezone.now)
+    date_traitement = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Profil Prestataire"
         verbose_name_plural = "Profils Prestataires"
+
+    @property
+    def valide(self):
+        # Conservé pour compatibilité : les templates vérifient encore `profil.valide`
+        return self.statut_validation == self.StatutValidation.VALIDE
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} — {self.metier}"

@@ -1,37 +1,82 @@
 {% extends "base.html" %}
+{% block title %}{{ prestataire.user.get_full_name|default:prestataire.user.username }}{% endblock %}
 {% block content %}
-<h2>{{ prestataire.user.get_full_name|default:prestataire.user.username }}</h2>
-<p class="text-muted">{{ prestataire.metier }}{% if prestataire.ville %} — {{ prestataire.ville }}{% endif %}</p>
-<p>{{ prestataire.description }}</p>
 
-<h4 class="mt-4">Services proposés</h4>
-<ul>
-  {% for s in services %}
-  <li>{{ s.nom }} — {{ s.duree_minutes }} min — {{ s.prix }} MAD</li>
-  {% empty %}
-  <li>Aucun service renseigné pour le moment.</li>
-  {% endfor %}
-</ul>
+<a href="{% url 'liste_prestataires' %}" class="text-decoration-none small text-muted d-inline-block mb-3">&larr; Retour aux prestataires</a>
 
-<h4 class="mt-4">Créneaux disponibles</h4>
-{% if creneaux_libres %}
-<div class="list-group">
-  {% for creneau in creneaux_libres %}
-  <form method="post" action="{% url 'reserver' creneau.id %}" class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-    {% csrf_token %}
-    <span>{{ creneau.date|date:"D d/m/Y" }} — {{ creneau.heure_debut|time:"H:i" }} à {{ creneau.heure_fin|time:"H:i" }}</span>
-    {% if services %}
-    <select name="service_id" class="form-select form-select-sm w-auto">
-      {% for s in services %}
-      <option value="{{ s.id }}">{{ s.nom }} ({{ s.prix }} MAD)</option>
-      {% endfor %}
-    </select>
-    {% endif %}
-    <button type="submit" class="btn btn-sm btn-success">Réserver</button>
-  </form>
-  {% endfor %}
+<div class="card p-4 mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:1.4rem;">
+      {{ prestataire.user.username|slice:":2"|upper }}
+    </div>
+    <div>
+      <h3 class="fw-bold mb-1">{{ prestataire.user.get_full_name|default:prestataire.user.username }}</h3>
+      <span class="badge bg-primary bg-opacity-10 text-primary">{{ prestataire.metier }}</span>
+      {% if prestataire.ville %}<span class="text-muted small ms-2">{{ prestataire.ville }}</span>{% endif %}
+    </div>
+  </div>
+  {% if prestataire.description %}
+  <p class="text-muted mt-3 mb-0">{{ prestataire.description }}</p>
+  {% endif %}
 </div>
-{% else %}
-<p>Aucun créneau libre pour le moment.</p>
-{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <h5 class="fw-bold mb-3">Services proposés</h5>
+    {% for s in services %}
+    <div class="card mb-2">
+      <div class="card-body d-flex justify-content-between align-items-center py-3">
+        <div>
+          <div class="fw-semibold">{{ s.nom }}</div>
+          <div class="text-muted small">{{ s.duree_minutes }} min</div>
+        </div>
+        <div class="fw-bold text-primary">{{ s.prix }} MAD</div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-muted small">Aucun service renseigné pour le moment.</p>
+    {% endfor %}
+  </div>
+
+  <div class="col-lg-7">
+    <h5 class="fw-bold mb-3">Créneaux disponibles</h5>
+    {% if creneaux_libres and services %}
+      {% if services|length > 1 %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Service souhaité</label>
+        <select name="service_id" form="form-reservation" class="form-select">
+          {% for s in services %}<option value="{{ s.id }}">{{ s.nom }} — {{ s.prix }} MAD</option>{% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <form id="form-reservation" method="post">
+        {% csrf_token %}
+        {% if services|length == 1 %}
+        <input type="hidden" name="service_id" value="{{ services.0.id }}">
+        {% endif %}
+        {% regroup creneaux_libres by date as creneaux_par_jour %}
+        {% for jour in creneaux_par_jour %}
+        <div class="mb-3">
+          <div class="text-muted small fw-semibold text-uppercase mb-2">{{ jour.grouper|date:"l d F" }}</div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for creneau in jour.list %}
+            <button type="submit" formaction="{% url 'reserver' creneau.id %}" class="btn btn-outline-primary btn-sm">
+              {{ creneau.heure_debut|time:"H:i" }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </form>
+    {% elif creneaux_libres and not services %}
+    <div class="card text-center p-4">
+      <p class="text-muted mb-0">Ce prestataire n'a pas encore renseigné de service à réserver.</p>
+    </div>
+    {% else %}
+    <div class="card text-center p-4">
+      <p class="text-muted mb-0">Aucun créneau libre pour le moment. Reviens bientôt !</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

@@ -12,6 +12,7 @@ from comptes.decorators import role_required
 from .forms import DisponibiliteForm
 from .models import ProfilPrestataire, Disponibilite, RendezVous, Service, Paiement
 from .notifications import envoyer_confirmation, envoyer_annulation
+from django.db.models import Sum
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -169,11 +170,24 @@ def mon_espace_prestataire(request):
         disponibilite__prestataire=profil
     ).exclude(statut=RendezVous.Statut.ANNULE)
 
+    rdvs_a_venir = rdvs.filter(
+        statut=RendezVous.Statut.CONFIRME,
+        disponibilite__date__gte=timezone.localdate(),
+    ).count()
+    creneaux_libres_count = disponibilites.filter(est_reserve=False).count()
+    revenu_total = Paiement.objects.filter(
+        rendezvous__disponibilite__prestataire=profil,
+        statut=Paiement.Statut.PAYE,
+    ).aggregate(total=Sum("montant"))["total"] or 0
+
     return render(request, "rendezvous/espace_prestataire.html", {
         "profil": profil,
         "form": form,
         "disponibilites": disponibilites,
         "rendezvous_list": rdvs,
+        "rdvs_a_venir": rdvs_a_venir,
+        "creneaux_libres_count": creneaux_libres_count,
+        "revenu_total": revenu_total,
     })
 
 

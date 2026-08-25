@@ -1,0 +1,13 @@
+:root {
+  --primary: #4F46E5;
+  --primary-fg: #fff;
+  --primary-hover: #4338CA;
+  --button-bg: var(--primary);
+  --button-hover-bg: var(--primary-hover);
+  --link-fg: #4F46E5;
+  --link-hover-color: #4338CA;
+  --link-selected-fg: #4338CA;
+}
+#branding h1 a:link, #branding h1 a:visited {
+  font-weight: 700;
+}

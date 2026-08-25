@@ -1,5 +1,44 @@
 {% extends "base.html" %}
+{% block title %}Accueil{% endblock %}
 {% block content %}
-<h1>Ça tourne 🎉</h1>
-<p>Django + MySQL + Bootstrap sont connectés.</p>
+
+{% if user.is_authenticated and user.role == "prestataire" %}
+<div class="hero text-center mb-5">
+    <h1 class="display-6 mb-3">Bienvenue, {{ user.username }}</h1>
+    <p class="lead mb-4">Gérez vos disponibilités et suivez vos rendez-vous depuis votre espace.</p>
+    <a href="{% url 'mon_espace_prestataire' %}" class="btn btn-light btn-lg fw-bold">Accéder à mon espace</a>
+</div>
+
+{% else %}
+<div class="hero text-center mb-5">
+    <h1 class="display-5 mb-3">Réservez vos rendez-vous en quelques clics</h1>
+    <p class="lead mb-4">Trouvez un prestataire, choisissez un créneau, payez en ligne — tout simplement.</p>
+    <a href="{% url 'liste_prestataires' %}" class="btn btn-light btn-lg fw-bold">Trouver un prestataire</a>
+</div>
+
+<div class="row text-center g-4 mb-5">
+    <div class="col-md-4">
+        <h5 class="fw-bold">1. Trouvez</h5>
+        <p class="text-muted">Parcourez les prestataires disponibles.</p>
+    </div>
+    <div class="col-md-4">
+        <h5 class="fw-bold">2. Réservez</h5>
+        <p class="text-muted">Choisissez le créneau qui vous convient, en temps réel.</p>
+    </div>
+    <div class="col-md-4">
+        <h5 class="fw-bold">3. Confirmez</h5>
+        <p class="text-muted">Payez en ligne en toute sécurité et recevez votre confirmation.</p>
+    </div>
+</div>
+
+{% if not user.is_authenticated %}
+<div class="card card-hover text-center p-4">
+    <h5>Vous êtes prestataire de services ?</h5>
+    <p class="text-muted mb-3">Rejoignez la plateforme et gérez vos disponibilités en ligne.</p>
+    <div>
+        <a href="{% url 'inscription' %}" class="btn btn-outline-primary">Créer un compte</a>
+    </div>
+</div>
+{% endif %}
+{% endif %}
 {% endblock %}
